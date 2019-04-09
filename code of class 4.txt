@@ -1,0 +1,75 @@
+### class 4
+# variable type
+# 1 number
+# 2 list     []
+# 3 tuple    ()
+# 4 string    '  ' or  ''   '' 
+# 5 dictionary    {}
+
+
+# 6 array-ndarray   (NumPy package)
+# 7 DataFrame       (pandas)
+
+import numpy as np
+import matplotlib.pyplot as plt
+A = np.random.random((3, 3))
+plt.imshow(A)
+
+import numpy as np
+randn = np.random.randn
+import pandas as pd
+s = pd.Series(randn(3),index=['a','b','c'])
+
+s.reindex(['b','c','a','d'])
+
+
+d = {'one': s*s,'two': s+s}
+
+df = pd.DataFrame(d)
+
+df['three'] = s*3
+
+
+
+### PCA analysis
+
+path  = r'D:\teaching\Spring\spring 2017\data mining master\data\zip.train\zip.train'
+import numpy as np
+data = np.loadtxt(path)
+
+id = data[:,0] ==3
+numk = data[id,1:]
+
+A = numk[90,:].reshape(16,16)
+plt.imshow(A)
+meank = np.mean(numk,axis = 0)
+m = meank.reshape(16,16)
+plt.imshow(m)
+
+import numpy.linalg as la
+covk = np.cov(numk.T)
+u,v = la.eig(covk)
+
+
+plt.imshow(v[:,0].reshape(16,16))
+s1 = (numk - meank).dot(v[:,0])
+rank1 = s1.argsort()
+
+A = numk[401,:].reshape(16,16)
+plt.imshow(A)
+
+plt.imshow(v[:,1].reshape(16,16))
+s1 = (numk - meank).dot(v[:,1])
+rank1 = s1.argsort()
+
+A = numk[rank1[329],:].reshape(16,16)
+plt.imshow(A)
+
+## reconstruction
+
+xi = (numk - meank).dot(v[:,0:150])#658*2
+newk = meank + xi.dot(v[:,0:150].T)
+A = numk[547,:].reshape(16,16)
+plt.imshow(A)
+A = newk[547,:].reshape(16,16)
+plt.imshow(A)
