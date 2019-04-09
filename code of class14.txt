@@ -1,0 +1,86 @@
+Bootstrap Method
+
+## cubic spline
+import numpy.linalg as la
+import numpy as np
+n = 100
+x = np.random.randn(n,1)
+x = (x- np.min(x))/(np.max(x) - np.min(x)) 
+#err = np.random.randn(n,1)*0.3
+err = np.random.standard_t(3,size = (n,1))*0.3
+y = np.sin(2*np.pi*x)+ err
+plt.plot(x,y,'o')
+
+### 1, simple cubic spline
+c = np.ones((n,1))
+k1 = (x - 0.5)**3*(x-0.5>0)
+X = np.hstack((c,x,x**2,x**3,k1))
+beta = la.inv(X.T.dot(X)).dot(X.T).dot(y)
+
+u = np.linspace(0,1,100).reshape(100,1)
+ku1 = (u - 0.5)**3*(u-0.5>0)
+U = np.hstack((c,u,u**2,u**3,ku1))
+
+fu = U.dot(beta)
+plt.plot(x,y,'o')
+plt.hold(1)
+plt.plot(u,fu,'r-')
+
+
+## Nonparametric Bootstrap Method
+## Confidence interval
+## Sampling from raw data
+B = 1000
+rec_fu = np.zeros((B,n))
+for j in range(B):
+    id = np.random.random_integers(0,99,size=(n,))
+    nx = x[id]
+    ny = y[id]
+    kn1 = (nx - 0.5)**3*(nx-0.5>0)
+    Xn = np.hstack((c,nx,nx**2,nx**3,kn1))
+    betan = la.inv(Xn.T.dot(Xn)).dot(Xn.T).dot(ny)
+    fu = U.dot(betan)
+    rec_fu[j,:] = fu.ravel()
+
+plt.plot(rec_fu.T)
+
+qt975 = np.percentile(rec_fu,97.5,axis = 0)
+qt025 = np.percentile(rec_fu,2.5,axis = 0)
+plt.plot(x,y,'o')
+plt.hold(1)
+plt.plot(u,np.sin(2*np.pi*u),'r-')
+plt.plot(u,qt975,'b--')
+plt.plot(u,qt025,'b--')
+
+
+
+## parametric bootstrap
+## use raw data to fit a model
+## sampling from the fitted model
+B = 1000
+rec_fu2 = np.zeros((B,n))
+yhat = X.dot(beta)
+sigma2 = np.mean((y - yhat)**2)
+for j in range(B):
+    nx = x
+    errx = np.random.randn(n,1)*sigma2**(0.5)
+    ny = yhat + errx
+    kn1 = (nx - 0.5)**3*(nx-0.5>0)
+    Xn = np.hstack((c,nx,nx**2,nx**3,kn1))
+    betan = la.inv(Xn.T.dot(Xn)).dot(Xn.T).dot(ny)
+    fu = U.dot(betan)
+    rec_fu2[j,:] = fu.ravel()
+
+pqt975 = np.percentile(rec_fu2,97.5,axis = 0)
+pqt025 = np.percentile(rec_fu2,2.5,axis = 0)
+plt.plot(x,y,'o')
+plt.hold(1)
+plt.plot(u,np.sin(2*np.pi*u),'r-')
+plt.plot(u,pqt975,'b--')
+plt.plot(u,pqt025,'b--')
+
+
+## Comparison
+## in this example, nonparametric bootstrap
+#  accounts for the variation in x
+#  accounts for the unknown error distribution
